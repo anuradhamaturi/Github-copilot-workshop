@@ -5,6 +5,36 @@ import {
   listTasks,
   updateTask
 } from './services/taskService.js';
+import { colorPriority, colorStatus } from './utils/colors.js';
+
+/**
+ * Colorize status and priority fields while preserving other task data.
+ *
+ * @param {unknown} value - Value to format for display.
+ * @returns {unknown} Display-friendly value.
+ */
+function formatForDisplay(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => formatForDisplay(item));
+  }
+
+  if (value !== null && typeof value === 'object') {
+    const record = /** @type {Record<string, unknown>} */ (value);
+    const formatted = { ...record };
+
+    if (Object.prototype.hasOwnProperty.call(record, 'status')) {
+      formatted.status = colorStatus(record.status);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(record, 'priority')) {
+      formatted.priority = colorPriority(record.priority);
+    }
+
+    return formatted;
+  }
+
+  return value;
+}
 
 /**
  * Print labeled output as formatted JSON.
@@ -15,7 +45,8 @@ import {
  */
 function printStep(label, value) {
   console.log(`\n${label}`);
-  console.log(JSON.stringify(value, null, 2));
+  const formatted = formatForDisplay(value);
+  console.log(JSON.stringify(formatted, null, 2));
 }
 
 /**
