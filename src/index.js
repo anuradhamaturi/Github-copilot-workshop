@@ -1,6 +1,7 @@
 import {
   createTask,
   deleteTask,
+  filterTasksByCategory,
   getTaskById,
   listTasks,
   updateTask
@@ -59,29 +60,54 @@ export function runDemo() {
     const firstTask = createTask({
       title: 'Prepare workshop notes',
       description: 'Draft examples for Copilot custom instructions.',
-      priority: 'high'
+      priority: 'high',
+      category: 'work'
     });
-    printStep('Created first task:', firstTask);
+    printStep('Created first task (category: work):', firstTask);
 
     const secondTask = createTask({
       title: 'Review exercise 04',
       description: 'Verify skill loading instructions are clear.',
       status: 'in-progress',
-      priority: 'medium'
+      priority: 'medium',
+      category: 'work'
     });
-    printStep('Created second task:', secondTask);
+    printStep('Created second task (category: work):', secondTask);
+
+    const thirdTask = createTask({
+      title: 'Plan weekend hike',
+      description: 'Research trails in nearby mountains.',
+      priority: 'low',
+      category: 'personal'
+    });
+    printStep('Created third task (category: personal):', thirdTask);
+
+    const fourthTask = createTask({
+      title: 'Fix critical bug',
+      description: 'Production issue affecting users.',
+      status: 'in-progress',
+      priority: 'high'
+    });
+    printStep('Created fourth task (default category: general):', fourthTask);
 
     const allTasks = listTasks();
     printStep('Listed all tasks:', allTasks);
+
+    const workTasks = filterTasksByCategory('work');
+    printStep('Filtered tasks by category: work', workTasks);
+
+    const personalTasks = filterTasksByCategory('personal');
+    printStep('Filtered tasks by category: personal', personalTasks);
 
     const fetchedTask = getTaskById(firstTask.id);
     printStep('Fetched first task by id:', fetchedTask);
 
     const updatedTask = updateTask(firstTask.id, {
       status: 'done',
-      description: 'Examples are ready for student walkthrough.'
+      description: 'Examples are ready for student walkthrough.',
+      category: 'general'
     });
-    printStep('Updated first task:', updatedTask);
+    printStep('Updated first task (changed category to general):', updatedTask);
 
     const deletedTask = deleteTask(secondTask.id);
     printStep('Deleted second task:', deletedTask);

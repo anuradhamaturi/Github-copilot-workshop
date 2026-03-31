@@ -10,8 +10,9 @@ import {
 
 const STATUS_VALUES = ['todo', 'in-progress', 'done'];
 const PRIORITY_VALUES = ['low', 'medium', 'high'];
+const CATEGORY_VALUES = ['work', 'personal', 'urgent', 'general'];
 const IMMUTABLE_FIELDS = new Set(['id', 'createdAt', 'updatedAt']);
-const MUTABLE_FIELDS = new Set(['title', 'description', 'status', 'priority']);
+const MUTABLE_FIELDS = new Set(['title', 'description', 'status', 'priority', 'category']);
 
 /**
  * Task domain model with built-in field validation and normalization.
@@ -20,7 +21,7 @@ export class Task {
   /**
    * Create a new task.
    *
-   * @param {{title: unknown, description?: unknown, status?: unknown, priority?: unknown}} input - Raw task input.
+   * @param {{title: unknown, description?: unknown, status?: unknown, priority?: unknown, category?: unknown}} input - Raw task input.
    */
   constructor(input) {
     const data = assertPlainObject(input, 'input');
@@ -35,6 +36,9 @@ export class Task {
     this.priority = data.priority === undefined
       ? 'medium'
       : assertEnumValue(data.priority, 'priority', PRIORITY_VALUES);
+    this.category = data.category === undefined
+      ? 'general'
+      : normalizeOptionalString(data.category, 'category', 50);
     this.createdAt = now;
     this.updatedAt = now;
   }
@@ -54,6 +58,9 @@ export class Task {
     task.description = normalizeOptionalString(data.description, 'description', 1000);
     task.status = assertEnumValue(data.status, 'status', STATUS_VALUES);
     task.priority = assertEnumValue(data.priority, 'priority', PRIORITY_VALUES);
+    task.category = data.category === undefined
+      ? 'general'
+      : normalizeOptionalString(data.category, 'category', 50);
     task.createdAt = assertIsoTimestamp(data.createdAt, 'createdAt');
     task.updatedAt = assertIsoTimestamp(data.updatedAt, 'updatedAt');
 
@@ -83,6 +90,10 @@ export class Task {
 
     if (Object.prototype.hasOwnProperty.call(normalizedPatch, 'priority')) {
       this.priority = /** @type {string} */ (normalizedPatch.priority);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(normalizedPatch, 'category')) {
+      this.category = /** @type {string} */ (normalizedPatch.category);
     }
 
     this.updatedAt = new Date().toISOString();
@@ -131,13 +142,17 @@ export class Task {
       normalized.priority = assertEnumValue(data.priority, 'priority', PRIORITY_VALUES);
     }
 
+    if (Object.prototype.hasOwnProperty.call(data, 'category')) {
+      normalized.category = normalizeOptionalString(data.category, 'category', 50);
+    }
+
     return normalized;
   }
 
   /**
    * Convert the task to a plain serializable object.
    *
-   * @returns {{id: string, title: string, description: string, status: string, priority: string, createdAt: string, updatedAt: string}} Plain task object.
+   * @returns {{id: string, title: string, description: string, status: string, priority: string, category: string, createdAt: string, updatedAt: string}} Plain task object.
    */
   toJSON() {
     return {
@@ -146,6 +161,7 @@ export class Task {
       description: this.description,
       status: this.status,
       priority: this.priority,
+      category: this.category,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt
     };

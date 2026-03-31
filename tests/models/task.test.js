@@ -12,6 +12,7 @@ test('Task constructor sets defaults and timestamps', () => {
   assert.equal(json.description, '');
   assert.equal(json.status, 'todo');
   assert.equal(json.priority, 'medium');
+  assert.equal(json.category, 'general');
   assert.equal(typeof json.createdAt, 'string');
   assert.equal(typeof json.updatedAt, 'string');
 });
@@ -71,10 +72,35 @@ test('Task constructor supports missing optional fields', () => {
   assert.equal(task.description, '');
   assert.equal(task.status, 'todo');
   assert.equal(task.priority, 'medium');
+  assert.equal(task.category, 'general');
+});
+
+test('Task constructor accepts explicit category', () => {
+  const task = new Task({ title: 'Work task', category: 'work' }).toJSON();
+  assert.equal(task.category, 'work');
+});
+
+test('Task constructor normalizes category with leading/trailing whitespace', () => {
+  const task = new Task({ title: 'Task', category: '  personal  ' }).toJSON();
+  assert.equal(task.category, 'personal');
+});
+
+test('Task constructor rejects invalid category type', () => {
+  assert.throws(() => new Task({ title: 'x', category: 123 }), /category must be a string/);
+});
+
+test('Task constructor accepts boundary category length', () => {
+  const category50 = 'c'.repeat(50);
+  const task = new Task({ title: 'x', category: category50 }).toJSON();
+  assert.equal(task.category.length, 50);
+});
+
+test('Task constructor rejects category above max length', () => {
+  assert.throws(() => new Task({ title: 'x', category: 'c'.repeat(51) }), /at most 50 characters/);
 });
 
 test('Task.fromRecord rehydrates a valid record', () => {
-  const base = new Task({ title: 'Seed task' }).toJSON();
+  const base = new Task({ title: 'Seed task', category: 'work' }).toJSON();
   const rehydrated = Task.fromRecord(base).toJSON();
 
   assert.deepEqual(rehydrated, base);
@@ -101,14 +127,16 @@ test('Task.validateUpdatePatch accepts mutable fields', () => {
     title: '  New title  ',
     description: '  New desc  ',
     status: 'done',
-    priority: 'low'
+    priority: 'low',
+    category: '  urgent  '
   });
 
   assert.deepEqual(patch, {
     title: 'New title',
     description: 'New desc',
     status: 'done',
-    priority: 'low'
+    priority: 'low',
+    category: 'urgent'
   });
 });
 
@@ -126,20 +154,22 @@ test('Task.validateUpdatePatch rejects type mismatches in patch values', () => {
   assert.throws(() => Task.validateUpdatePatch({ title: 42 }), /title must be a string/);
   assert.throws(() => Task.validateUpdatePatch({ status: 42 }), /status must be a string/);
   assert.throws(() => Task.validateUpdatePatch({ priority: [] }), /priority must be a string/);
+  assert.throws(() => Task.validateUpdatePatch({ category: 999 }), /category must be a string/);
 });
 
 test('Task.update mutates mutable fields and changes updatedAt', async () => {
-  const task = new Task({ title: 'Before', description: 'old', status: 'todo', priority: 'medium' });
+  const task = new Task({ title: 'Before', description: 'old', status: 'todo', priority: 'medium', category: 'work' });
   const before = task.toJSON();
 
   await new Promise((resolve) => setTimeout(resolve, 2));
-  task.update({ title: 'After', status: 'done' });
+  task.update({ title: 'After', status: 'done', category: 'personal' });
 
   const after = task.toJSON();
   assert.equal(after.id, before.id);
   assert.equal(after.createdAt, before.createdAt);
   assert.equal(after.title, 'After');
   assert.equal(after.status, 'done');
+  assert.equal(after.category, 'personal');
   assert.equal(after.priority, 'medium');
   assert.notEqual(after.updatedAt, before.updatedAt);
 });

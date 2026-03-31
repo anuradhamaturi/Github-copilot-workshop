@@ -1,7 +1,7 @@
 # Task Manager CLI Project Plan
 
 ## Project overview
-This project is a small Node.js 20+ command-line Task Manager application designed for workshop use. It will support creating, listing, updating, and deleting tasks, with filtering by status or priority and sorting by priority or creation date. Data will be stored only in memory for the runtime session (no database and no file persistence), keeping implementation simple and focused on core CLI design and clean command handling.
+This project is a small Node.js 20+ command-line Task Manager application designed for workshop use. It will support creating, listing, updating, and deleting tasks, with filtering by status, priority, or category and sorting by priority or creation date. Data will be stored only in memory for the runtime session (no database and no file persistence), keeping implementation simple and focused on core CLI design and clean command handling.
 
 ## User stories
 1. As a user, I can create a task with required and optional fields so I can track work items.
@@ -40,6 +40,14 @@ Acceptance criteria:
 - Sorting by priority uses `high > medium > low`.
 - Sorting by creation date supports ascending and descending order via `--order=asc|desc`.
 
+7. As a user, I can assign a category to a task so I can organize tasks by type or context.
+Acceptance criteria:
+- Create and update commands accept an optional `category` field.
+- Category defaults to `general` when not provided.
+- Valid categories include predefined values such as `work`, `personal`, and `urgent`.
+- List command supports `--category` filter to show only tasks matching a specific category.
+- Filtering by category works independently and in combination with status and priority filters.
+
 ## Data model
 - `Task`
 - `id: string` - unique identifier (for example, incremented string or `crypto.randomUUID()`).
@@ -47,6 +55,7 @@ Acceptance criteria:
 - `description: string` - optional details (can be empty string).
 - `status: "todo" | "in-progress" | "done"`.
 - `priority: "low" | "medium" | "high"`.
+- `category: string` - optional category label (defaults to `general`; examples: `work`, `personal`, `urgent`).
 - `createdAt: string` - ISO-8601 timestamp.
 - `updatedAt: string` - ISO-8601 timestamp.
 
@@ -79,8 +88,14 @@ Acceptance criteria:
   - Set `updatedAt` only after all validations pass.
 - Filter/sort validation:
   - `--status` and `--priority` filters must match allowed enum values.
+  - `--category` filter must match a valid category value or match the default category.
   - `--sort` only allows `priority` or `createdAt`.
   - `--order` only allows `asc` or `desc`; default to `asc` when omitted.
+- Category validation:
+  - `category` is optional on create and update.
+  - When provided, must be a non-empty trimmed string.
+  - Defaults to `general` when omitted on create.
+  - Maximum length: 50 characters.
 - ID validation:
   - Task id must be a non-empty string.
   - Update/delete/list lookups with unknown id return `NOT_FOUND_ERROR`.

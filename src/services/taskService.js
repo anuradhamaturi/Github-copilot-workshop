@@ -16,7 +16,7 @@ function cloneTask(task) {
 /**
  * Create a new task record.
  *
- * @param {{title: unknown, description?: unknown, status?: unknown, priority?: unknown}} input - Raw task input.
+ * @param {{title: unknown, description?: unknown, status?: unknown, priority?: unknown, category?: unknown}} input - Raw task input.
  * @returns {Record<string, unknown>} Created task.
  */
 export function createTask(input) {
@@ -93,4 +93,17 @@ export function deleteTask(id) {
 
   const [deletedTask] = taskStore.splice(index, 1);
   return cloneTask(deletedTask);
+}
+
+/**
+ * Filter task records by category.
+ *
+ * @param {unknown} category - Category to filter by.
+ * @returns {Record<string, unknown>[]} Tasks matching the category.
+ */
+export function filterTasksByCategory(category) {
+  const normalizedCategory = assertRequiredString(category, 'category', 50);
+  return taskStore
+    .filter((task) => task.category === normalizedCategory)
+    .map((task) => cloneTask(task));
 }

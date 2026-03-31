@@ -11,6 +11,7 @@
 | description | string | Yes | Defaults to empty string when omitted; maximum length 1000 characters. |
 | status | 'todo' \| 'in-progress' \| 'done' | Yes | Must be one of the allowed status values; defaults to 'todo' on create. |
 | priority | 'low' \| 'medium' \| 'high' | Yes | Must be one of the allowed priority values; defaults to 'medium' on create. |
+| category | string | No | Optional category label; defaults to 'general' when omitted; must be a non-empty trimmed string; maximum length 50 characters. |
 | createdAt | string | Yes | Must be an ISO-8601 timestamp string; set automatically on create; immutable after creation. |
 | updatedAt | string | Yes | Must be an ISO-8601 timestamp string; set on create and updated after successful updates. |
 
@@ -45,6 +46,13 @@ Detailed property validation rules:
   - Allowed values: low, medium, high.
   - Defaults to medium if omitted on create.
   - Invalid enum values are rejected.
+- category
+  - Type must be string.
+  - Optional on create and update; defaults to 'general' if omitted on create.
+  - Value is normalized with trim().
+  - Minimum length after trim: 1.
+  - Maximum length: 50.
+  - Can be updated via update operations.
 - createdAt
   - Type must be string.
   - Must be a valid ISO-8601 UTC timestamp.
@@ -99,9 +107,10 @@ src/
 - Exports:
   - STATUS_VALUES
   - PRIORITY_VALUES
+  - CATEGORY_VALUES
   - PRIORITY_RANK
 - Responsibilities:
-  - Centralize allowed enum values and priority sort precedence.
+  - Centralize allowed enum values, category values, and priority sort precedence.
 - Depends on:
   - No internal modules.
 
@@ -127,7 +136,7 @@ src/
 - Responsibilities:
   - Maintain in-memory TaskStore tasks array.
   - Implement create/list/update/delete behavior.
-  - Apply list filters (status, priority).
+  - Apply list filters (status, priority, category).
   - Apply sorting (priority, createdAt, order asc/desc).
 - Depends on:
   - src/models/task.js
